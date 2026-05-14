@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: war-news-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: war-news-safety-app
+
+  redis:
+    image: redis:7-alpine
+    container_name: war-news-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  server:
+    build: .
+    container_name: war-news-server
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      PORT: 5000
+      NODE_ENV: development
+      MONGODB_URI: mongodb://mongodb:27017/war-news-safety-app
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your_secret_key_here
+      NEWS_API_KEY: ${NEWS_API_KEY}
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mongo_data:
+  redis_data:
